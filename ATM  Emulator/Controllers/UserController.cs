@@ -61,42 +61,7 @@ namespace ATM__Emulator.Controllers
             }
         }
 
-        [HttpPatch("deposite")]
-        public IActionResult Deposite([FromHeader] string Authorization, DepositeRequestDto dto)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(Authorization))
-                {
-                    return Unauthorized("Access Token is Missing");
-                }
-                var isAuthorized = ValidateAccessToken(Authorization.Split(" ")[1]);
-                if (!isAuthorized) return Unauthorized("Unauthorized");
-                var response = _userServices.Deposite(dto);
-                return Ok(response);
-
-            }catch(Exception ex) { return NotFound(ex.Message); }
-        }
-
-        [HttpPatch("withdraw")]
-        public IActionResult Withdraw([FromHeader] string Authorization, WithdrawRequestDto dto)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(Authorization))
-                {
-                    return Unauthorized("Access Token is Missing");
-                }
-                var isAuthorized = ValidateAccessToken(Authorization.Split(" ")[1]);
-                if (!isAuthorized) return Unauthorized("Unauthorized");
-                var response = _userServices.Withdraw(dto);
-                return Ok(response);
-
-            }
-            catch (Exception ex) { return NotFound(ex.Message); }
-        }
-
-
+        /*
         private bool ValidateAccessToken (string accessToken)
         {
             try
@@ -125,6 +90,6 @@ namespace ATM__Emulator.Controllers
                 return false;
             }
             
-        }
+        }*/
     }
 }

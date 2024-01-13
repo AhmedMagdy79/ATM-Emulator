@@ -11,9 +11,5 @@ namespace ATM__Emulator.Services
 
         Task<LoginResponseDto> Login(UserRequestDto userData);
 
-        WithdrawResponseDto Withdraw(WithdrawRequestDto withdrawData);
-
-        DepositeResponseDto Deposite(DepositeRequestDto depositeData);
-
     }
 }

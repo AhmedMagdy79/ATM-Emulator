@@ -62,35 +62,6 @@ namespace ATM__Emulator.Services
             throw new Exception("Wrong Name or Password");
         }
 
-        public DepositeResponseDto Deposite(DepositeRequestDto depositeData)
-        {
-            var user = _context.Users.SingleOrDefault(u => u.Id == depositeData.UserId);
-
-            if (user == null) { throw new Exception("User not found"); }
-
-            user.Balance += depositeData.Amount;
-            _context.SaveChanges();
-
-            return new DepositeResponseDto { UserId = user.Id, CurrentBalance = user.Balance};
-
-        }
-
-        public WithdrawResponseDto Withdraw(WithdrawRequestDto withdrawData)
-        {
-            var user = _context.Users.SingleOrDefault(u => u.Id == withdrawData.UserId);
-
-            if (user == null) { throw new Exception("User not found"); }
-
-            var oldBalance = user.Balance;
-            user.Balance -= withdrawData.Amount;
-            _context.SaveChanges();
-            var amountWithdrawed = oldBalance - user.Balance;
-            return new WithdrawResponseDto {
-                UserId = user.Id,
-                AmountWithdrawed = amountWithdrawed,
-                CurrentBalance =user.Balance };
-        }
-
         private string HashPassword(string password, ref string salt)
         {
             byte[] saltBytes = new byte[16];
@@ -129,7 +100,7 @@ namespace ATM__Emulator.Services
 
             return hashedPassword == hashedProvidedPassword;
         }
-
+        
         private string GenerateJWT()
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -145,7 +116,7 @@ namespace ATM__Emulator.Services
             var token = new JwtSecurityTokenHandler().WriteToken(Sectoken);
             return token;
         }
-
+        
         public bool UserExist(string userName)
         {
             return _context.Users.Any(x => x.UserName == userName);

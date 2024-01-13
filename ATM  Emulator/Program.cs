@@ -33,6 +33,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddTransient<IUserServices, UserServices>();
 
+builder.Services.AddTransient<ITransactionServices, TransactionServices>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

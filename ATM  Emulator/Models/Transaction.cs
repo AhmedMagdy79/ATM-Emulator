@@ -12,5 +12,9 @@ namespace ATM__Emulator.Models
         public int UserId { get; set; }
 
         public User User { get; set; }
+
+        public string TransactionType { get; set; }
+
+        public double TransactionAmount { get; set; }
     }
 }
