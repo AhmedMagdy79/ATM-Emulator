@@ -3,6 +3,7 @@ using ATM__Emulator.Models;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -51,7 +52,7 @@ namespace ATM__Emulator.Services
             
             if (VerifyPassword(user.Password,user.Salt,userData.Password)) 
             {
-                var token = GenerateJWT();
+                var token = GenerateJWT(user);
                 return new LoginResponseDto { 
                     Id =user.Id,
                     UserName = user.UserName,
@@ -101,15 +102,21 @@ namespace ATM__Emulator.Services
             return hashedPassword == hashedProvidedPassword;
         }
         
-        private string GenerateJWT()
+        private string GenerateJWT(User user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var issuer = _config["Jwt:Issuer"];
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+                new Claim("UserId", user.Id.ToString()),
+            };
 
-            var Sectoken = new JwtSecurityToken(_config["Jwt:Issuer"],
-              _config["Jwt:Issuer"],
-              null,
+            var Sectoken = new JwtSecurityToken(issuer,
+              issuer,
+              claims,
               expires: DateTime.Now.AddMinutes(120),
               signingCredentials: credentials);
 

@@ -1,5 +1,6 @@
 ﻿using ATM__Emulator.Dtos;
 using ATM__Emulator.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,7 @@ namespace ATM__Emulator.Controllers
             _transactionServices = transactionServices;
         }
 
+        [Authorize]
         [HttpPatch("deposite")]
         public IActionResult Deposite(DepositeRequestDto dto)
         {
@@ -28,6 +30,7 @@ namespace ATM__Emulator.Controllers
             catch (Exception ex) { return NotFound(ex.Message); }
         }
 
+        [Authorize]
         [HttpPatch("withdraw")]
         public IActionResult Withdraw( WithdrawRequestDto dto)
         {
