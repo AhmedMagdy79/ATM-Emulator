@@ -4,9 +4,9 @@
     {
         public int UserId { get; set; }
 
-        public double CurrentBalance { get; set; }
+        public decimal CurrentBalance { get; set; }
 
-        public double AmountWithdrawed { get; set; }
+        public decimal AmountWithdrawed { get; set; }
 
     }
 }

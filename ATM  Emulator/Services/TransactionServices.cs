@@ -8,52 +8,53 @@ namespace ATM__Emulator.Services
     {
 
         private readonly ApplicationDbContext _context;
-        private readonly IConfiguration _config;
 
 
-        public TransactionServices(ApplicationDbContext context, IConfiguration config)
+        public TransactionServices(ApplicationDbContext context)
         {
             _context = context;
-            _config = config;
         }
 
-        public async Task<DepositeResponseDto> Deposite(DepositeRequestDto depositeData)
+        public async Task<Response<DepositeResponseDto>> DepositeAsync(DepositeRequestDto depositeData)
         {
-            var user = _context.Users.SingleOrDefault(u => u.Id == depositeData.UserId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == depositeData.UserId);
 
-            if (user == null) { throw new Exception("User not found"); }
+            if (user == null) { return Response<DepositeResponseDto>.CreateErrorResponse("user not found", null, 404); }
 
             user.Balance += depositeData.Amount;
-            _context.SaveChanges();
-
-            DateTime dateTime = DateTime.Now;
 
             var transaction = new Transaction
             {
                 UserId = user.Id,
                 TransactionType = "Deposite",
                 TransactionAmount = depositeData.Amount,
-                TransactionTime = dateTime
+                TransactionTime = DateTime.Now
             };
 
             await _context.AddAsync(transaction);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return new DepositeResponseDto { UserId = user.Id, CurrentBalance = user.Balance };
+            var result= new DepositeResponseDto { UserId = user.Id, CurrentBalance = user.Balance };
+
+            return Response<DepositeResponseDto>.CreateSuccessResponse(result, 200);
 
         }
 
-        public async Task<WithdrawResponseDto> Withdraw(WithdrawRequestDto withdrawData)
+        public async Task<Response<WithdrawResponseDto>> WithdrawAsync(WithdrawRequestDto withdrawData)
         {
-            var user = _context.Users.SingleOrDefault(u => u.Id == withdrawData.UserId);
 
-            if (user == null) { throw new Exception("User not found"); }
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == withdrawData.UserId);
+
+            if (user == null) { return Response<WithdrawResponseDto>.CreateErrorResponse("user not found", null, 404); }
+
+            if(user.Balance < withdrawData.Amount)
+            {
+                return Response<WithdrawResponseDto>.CreateErrorResponse("Your balance isn't enough", null, 403);
+            }
 
             var oldBalance = user.Balance;
             user.Balance -= withdrawData.Amount;
-            _context.SaveChanges();
-
 
             DateTime dateTime = DateTime.Now;
 
@@ -66,16 +67,17 @@ namespace ATM__Emulator.Services
             };
 
             await _context.AddAsync(transaction);
-
-            _context.SaveChanges();
+             await _context.SaveChangesAsync();
 
             var amountWithdrawed = oldBalance - user.Balance;
-            return new WithdrawResponseDto
+            var result = new WithdrawResponseDto
             {
                 UserId = user.Id,
                 AmountWithdrawed = amountWithdrawed,
                 CurrentBalance = user.Balance
             };
+
+            return Response<WithdrawResponseDto>.CreateSuccessResponse(result, 200);
         }
     }
 }

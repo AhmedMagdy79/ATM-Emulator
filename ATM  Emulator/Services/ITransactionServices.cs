@@ -4,8 +4,8 @@ namespace ATM__Emulator.Services
 {
     public interface ITransactionServices
     {
-        Task<WithdrawResponseDto> Withdraw(WithdrawRequestDto withdrawData);
+        Task<Response<WithdrawResponseDto>> WithdrawAsync(WithdrawRequestDto withdrawData);
 
-        Task<DepositeResponseDto> Deposite(DepositeRequestDto depositeData);
+        Task<Response<DepositeResponseDto>> DepositeAsync(DepositeRequestDto depositeData);
     }
 }

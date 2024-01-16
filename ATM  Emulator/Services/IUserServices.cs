@@ -5,11 +5,11 @@ namespace ATM__Emulator.Services
 {
     public interface IUserServices
     {
-        Task<User> Signup(UserRequestDto userData);
+        Task<Response<UserResponseDto>> SignupAsync(UserRequestDto userData);
 
         bool UserExist(string userName);
 
-        Task<LoginResponseDto> Login(UserRequestDto userData);
+        Task<Response<LoginResponseDto>> LoginAsync(UserRequestDto userData);
 
     }
 }

@@ -6,7 +6,7 @@
 
         public string UserName { get; set; }
 
-        public double Balance { get; set; }
+        public decimal Balance { get; set; }
 
         public string AccessToken { get; set; }
     }

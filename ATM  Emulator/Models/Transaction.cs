@@ -15,6 +15,6 @@ namespace ATM__Emulator.Models
 
         public string TransactionType { get; set; }
 
-        public double TransactionAmount { get; set; }
+        public decimal TransactionAmount { get; set; }
     }
 }

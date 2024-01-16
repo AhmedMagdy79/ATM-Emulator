@@ -1,6 +1,7 @@
 ﻿using ATM__Emulator.Dtos;
 using ATM__Emulator.Models;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -21,7 +22,7 @@ namespace ATM__Emulator.Services
             _config = config;
         }
 
-        public async Task<User> Signup(UserRequestDto userData)
+        public async Task<Response<UserResponseDto>> SignupAsync(UserRequestDto userData)
         {
             string hashedPassword, salt="";
             hashedPassword = HashPassword(userData.Password,ref salt);
@@ -36,31 +37,35 @@ namespace ATM__Emulator.Services
 
             await _context.AddAsync(user);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return user;
+            var result = new UserResponseDto {Id= user.Id ,UserName = user.UserName, Balance = user.Balance };
+
+            return Response<UserResponseDto>.CreateSuccessResponse(result,201);
         }
 
-        public async Task<LoginResponseDto> Login(UserRequestDto userData)
+        public async Task<Response<LoginResponseDto>> LoginAsync(UserRequestDto userData)
         {
-            var user =  _context.Users.SingleOrDefault(u => u.UserName == userData.UserName);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userData.UserName);
 
             if (user == null)
             {
-                throw new Exception("Wrong Name or Password");
+                return Response<LoginResponseDto>.CreateErrorResponse("Wrong username or password", null, 403);
             }
             
             if (VerifyPassword(user.Password,user.Salt,userData.Password)) 
             {
                 var token = GenerateJWT(user);
-                return new LoginResponseDto { 
+                var result= new LoginResponseDto { 
                     Id =user.Id,
                     UserName = user.UserName,
                     Balance = user.Balance,
-                    AccessToken = token};
+                    AccessToken = token
+                };
+                return Response<LoginResponseDto>.CreateSuccessResponse( result, 200);
             }
 
-            throw new Exception("Wrong Name or Password");
+            return Response<LoginResponseDto>.CreateErrorResponse("Wrong username or password", null, 403);
         }
 
         private string HashPassword(string password, ref string salt)
