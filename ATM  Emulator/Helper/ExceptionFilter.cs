@@ -10,7 +10,7 @@ namespace ATM__Emulator.Helper
             var jsonResult = new JsonResult(new
         {
             StatusCode = 500,
-            Message = "Internal Server Error"
+            Message = context.ActionDescriptor
         });
 
         context.Result = jsonResult;

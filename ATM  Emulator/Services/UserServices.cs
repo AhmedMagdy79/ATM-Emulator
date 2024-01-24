@@ -1,9 +1,11 @@
 ﻿using ATM__Emulator.Dtos;
 using ATM__Emulator.Models;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,126 +14,96 @@ namespace ATM__Emulator.Services
 {
     public class UserServices : IUserServices
     {
-        private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
         private readonly IConfiguration _config;
 
 
-        public UserServices(ApplicationDbContext context, IConfiguration config)
+        public UserServices(UserManager<User> userManager, IConfiguration config)
         {
-            _context = context;
+            _userManager = userManager;
             _config = config;
         }
 
         public async Task<Response<UserResponseDto>> SignupAsync(UserRequestDto userData)
         {
-            string hashedPassword, salt="";
-            hashedPassword = HashPassword(userData.Password,ref salt);
+
+            if (await _userManager.FindByNameAsync(userData.UserName) is not null)
+                return Response<UserResponseDto>.CreateErrorResponse("Username is already registered!", null, 400);
 
             var user = new User
             {
                 UserName = userData.UserName,
                 Balance = 0,
-                Password = hashedPassword,
-                Salt = salt
             };
 
-            await _context.AddAsync(user);
+            var userCreated =  await _userManager.CreateAsync(user, userData.Password);
 
-            await _context.SaveChangesAsync();
+           var addToRoleResult = await _userManager.AddToRoleAsync(user, "User");
+
+            if(!userCreated.Succeeded && !addToRoleResult.Succeeded)
+            {
+                return Response<UserResponseDto>.CreateErrorResponse("Something went wrong while creating user",null, 500);
+            }
 
             var result = new UserResponseDto {Id= user.Id ,UserName = user.UserName, Balance = user.Balance };
 
-            return Response<UserResponseDto>.CreateSuccessResponse(result,201);
+            return Response<UserResponseDto>.CreateSuccessResponse(result, 201);
         }
 
         public async Task<Response<LoginResponseDto>> LoginAsync(UserRequestDto userData)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userData.UserName);
+            var user = await _userManager.FindByNameAsync(userData.UserName);
 
-            if (user == null)
+            if (user == null || !await _userManager.CheckPasswordAsync(user, userData.Password))
             {
-                return Response<LoginResponseDto>.CreateErrorResponse("Wrong username or password", null, 403);
+                return Response<LoginResponseDto>.CreateErrorResponse("Wrong username or password", null, 401);
             }
+
             
-            if (VerifyPassword(user.Password,user.Salt,userData.Password)) 
-            {
-                var token = GenerateJWT(user);
-                var result= new LoginResponseDto { 
-                    Id =user.Id,
-                    UserName = user.UserName,
-                    Balance = user.Balance,
-                    AccessToken = token
-                };
-                return Response<LoginResponseDto>.CreateSuccessResponse( result, 200);
-            }
-
-            return Response<LoginResponseDto>.CreateErrorResponse("Wrong username or password", null, 403);
+            var jwtSecurityToken = await CreateJwtToken(user);
+            var result = new LoginResponseDto
+                {
+                 Id = user.Id,
+                 UserName = user.UserName,
+                 Balance = user.Balance,
+                 AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken)
+        };
+            return Response<LoginResponseDto>.CreateSuccessResponse(result, 200);
         }
 
-        private string HashPassword(string password, ref string salt)
+
+        private async Task<JwtSecurityToken> CreateJwtToken(User user)
         {
-            byte[] saltBytes = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(saltBytes);
-            }
-            salt = Convert.ToBase64String(saltBytes);
+            var userClaims = await _userManager.GetClaimsAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var roleClaims = new List<Claim>();
 
-            // Hash the password with the salt
-            string hashedPassword = Convert.ToBase64String(
-                KeyDerivation.Pbkdf2(
-                    password: password,
-                    salt: saltBytes,
-                    prf: KeyDerivationPrf.HMACSHA256,
-                    iterationCount: 10000,
-                    numBytesRequested: 256 / 8
-                )
-            );
+            foreach (var role in roles)
+                roleClaims.Add(new Claim("roles", role));
 
-            return hashedPassword;
-        }
-
-        private bool VerifyPassword(string hashedPassword, string salt, string providedPassword)
-        {
-            // Verify the provided password against the hashed password and salt
-            string hashedProvidedPassword = Convert.ToBase64String(
-                KeyDerivation.Pbkdf2(
-                    password: providedPassword,
-                    salt: Convert.FromBase64String(salt),
-                    prf: KeyDerivationPrf.HMACSHA256,
-                    iterationCount: 10000,
-                    numBytesRequested: 256 / 8
-                )
-            );
-
-            return hashedPassword == hashedProvidedPassword;
-        }
-        
-        private string GenerateJWT(User user)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var issuer = _config["Jwt:Issuer"];
             var claims = new[]
             {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
-                new Claim("UserId", user.Id.ToString()),
-            };
+                new Claim(JwtRegisteredClaimNames.Name, user.UserName),
+                new Claim("uid", user.Id)
+            }
+            .Union(userClaims)
+            .Union(roleClaims);
 
-            var Sectoken = new JwtSecurityToken(issuer,
-              issuer,
-              claims,
-              expires: DateTime.Now.AddMinutes(120),
-              signingCredentials: credentials);
+            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityTokenHandler().WriteToken(Sectoken);
-            return token;
+            var jwtSecurityToken = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Issuer"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(120),
+                signingCredentials: signingCredentials);
+
+            return jwtSecurityToken;
         }
-        
-        public bool UserExist(string userName)
-        {
-            return _context.Users.Any(x => x.UserName == userName);
-        }
+
+
     }
 }

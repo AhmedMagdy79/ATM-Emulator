@@ -1,5 +1,6 @@
 ﻿using ATM__Emulator.Dtos;
 using ATM__Emulator.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ATM__Emulator.Services
@@ -8,26 +9,35 @@ namespace ATM__Emulator.Services
     {
 
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
 
 
-        public TransactionServices(ApplicationDbContext context)
+        public TransactionServices(ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public async Task<Response<DepositeResponseDto>> DepositeAsync(DepositeRequestDto depositeData)
+        public async Task<Response<DepositeResponseDto>> DepositeAsync(string userId, decimal amount)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == depositeData.UserId);
+            var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null) { return Response<DepositeResponseDto>.CreateErrorResponse("user not found", null, 404); }
 
-            user.Balance += depositeData.Amount;
+            user.Balance += amount;
+
+            var updatedUser = await _userManager.UpdateAsync(user);
+
+            if (!updatedUser.Succeeded) 
+            {
+                return Response<DepositeResponseDto>.CreateErrorResponse("Something went wrong", null, 500);
+            }
 
             var transaction = new Transaction
             {
                 UserId = user.Id,
                 TransactionType = "Deposite",
-                TransactionAmount = depositeData.Amount,
+                TransactionAmount = amount,
                 TransactionTime = DateTime.Now
             };
 
@@ -41,39 +51,43 @@ namespace ATM__Emulator.Services
 
         }
 
-        public async Task<Response<WithdrawResponseDto>> WithdrawAsync(WithdrawRequestDto withdrawData)
+        public async Task<Response<WithdrawResponseDto>> WithdrawAsync(string userId, decimal amount)
         {
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == withdrawData.UserId);
+            var user = await _userManager.FindByIdAsync(userId);
+
 
             if (user == null) { return Response<WithdrawResponseDto>.CreateErrorResponse("user not found", null, 404); }
 
-            if(user.Balance < withdrawData.Amount)
+            if (user.Balance < amount)
             {
                 return Response<WithdrawResponseDto>.CreateErrorResponse("Your balance isn't enough", null, 403);
             }
 
-            var oldBalance = user.Balance;
-            user.Balance -= withdrawData.Amount;
+            user.Balance -= amount;
 
-            DateTime dateTime = DateTime.Now;
+            var updatedUser = await _userManager.UpdateAsync(user);
+
+            if (!updatedUser.Succeeded)
+            {
+                return Response<WithdrawResponseDto>.CreateErrorResponse("Something went wrong", null, 500);
+            }
 
             var transaction = new Transaction
             {
                 UserId = user.Id,
                 TransactionType = "Withdraw",
-                TransactionAmount = withdrawData.Amount,
-                TransactionTime = dateTime,
+                TransactionAmount = amount,
+                TransactionTime = DateTime.Now,
             };
 
             await _context.AddAsync(transaction);
-             await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-            var amountWithdrawed = oldBalance - user.Balance;
             var result = new WithdrawResponseDto
             {
                 UserId = user.Id,
-                AmountWithdrawed = amountWithdrawed,
+                AmountWithdrawed = amount,
                 CurrentBalance = user.Balance
             };
 

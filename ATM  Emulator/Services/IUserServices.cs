@@ -7,8 +7,6 @@ namespace ATM__Emulator.Services
     {
         Task<Response<UserResponseDto>> SignupAsync(UserRequestDto userData);
 
-        bool UserExist(string userName);
-
         Task<Response<LoginResponseDto>> LoginAsync(UserRequestDto userData);
 
     }

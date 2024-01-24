@@ -12,26 +12,19 @@ namespace ATM__Emulator.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserServices _userServices;
-        private readonly IConfiguration _config;
 
-        public UserController(IUserServices userServices, IConfiguration config)
+        public UserController(IUserServices userServices)
         {
             _userServices = userServices;
-            _config = config;
         }
 
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp(UserRequestDto dto)
         {
-            bool isExist = _userServices.UserExist(dto.UserName);
-
-            if (isExist)
-            {
-                var result = Response<UserResponseDto>.CreateErrorResponse("Username already exists", null, 403);
-                return BadRequest(result);
-            }
 
             var response = await _userServices.SignupAsync(dto);
+
+            if (response.StatusCode >= 400) { BadRequest(response); }
 
             return Ok(response);
         }
@@ -42,7 +35,7 @@ namespace ATM__Emulator.Controllers
 
                 var response = await _userServices.LoginAsync(dto);
 
-                if (response.StatusCode == 403) { return BadRequest(response); }
+                if (response.StatusCode == 401) { return Unauthorized(response); }
 
                 return Ok(response);
         }

@@ -1,8 +1,8 @@
-﻿using ATM__Emulator.Dtos;
-using ATM__Emulator.Helper;
+﻿using ATM__Emulator.Helper;
 using ATM__Emulator.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ATM__Emulator.Controllers
 {
@@ -18,29 +18,55 @@ namespace ATM__Emulator.Controllers
             _transactionServices = transactionServices;
         }
 
-        [Authorize]
+        [Authorize(Roles = "User")]
         [HttpPatch("deposite")]
-        public async Task<IActionResult> Deposite(DepositeRequestDto dto)
+        public async Task<IActionResult> Deposite( decimal amount)
         {
+            if (!isAmountInRange(amount))
+                return BadRequest("Amount Value Must be Positive");
 
-                var response = await _transactionServices.DepositeAsync(dto);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
 
-                if (response.StatusCode == 404) { return NotFound(response); }
+            var userId = identity.FindFirst("uid");
 
-                return Ok(response);
+            if (userId == null) { return Unauthorized(); }
+
+            var response = await _transactionServices.DepositeAsync(userId.Value, amount);
+
+             if (response.StatusCode == 404) { return NotFound(response); }
+
+             if (response.StatusCode == 500) { return BadRequest(response); }
+
+             return Ok(response);
         }
 
-        [Authorize]
         [HttpPatch("withdraw")]
-        public async Task<IActionResult> Withdraw( WithdrawRequestDto dto)
+        public async Task<IActionResult> Withdraw(decimal amount)
         {
-                var response = await _transactionServices.WithdrawAsync(dto);
+            if (!isAmountInRange(amount))
+                return BadRequest("Amount Value Must be Positive");
 
-                if (response.StatusCode == 404) { return NotFound(response); }
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
 
-                if (response.StatusCode == 403) { return BadRequest(response); }
+            var userId = identity.FindFirst("uid");
 
-                return Ok(response);
+            if (userId == null) { return Unauthorized(); }
+
+            var response = await _transactionServices.WithdrawAsync(userId.Value,amount);
+
+            if (response.StatusCode == 404) { return NotFound(response); }
+
+            if (response.StatusCode == 403) { return BadRequest(response); }
+
+            if (response.StatusCode == 500) { return BadRequest(response); }
+
+            return Ok(response);
+
+        }
+
+        private bool isAmountInRange(decimal amount)
+        {
+            return decimal.MaxValue >= amount && amount >= 1;
         }
     }
 }

@@ -66,3 +66,6 @@ D:\C#\Projects\ATM  Emulator\ATM  Emulator\obj\Debug\net6.0\ref\ATM  Emulator.dl
 D:\C#\Projects\ATM  Emulator\ATM  Emulator\bin\Debug\net6.0\Microsoft.AspNetCore.Cryptography.Internal.dll
 D:\C#\Projects\ATM  Emulator\ATM  Emulator\bin\Debug\net6.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
 D:\C#\Projects\ATM  Emulator\ATM  Emulator\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\C#\Projects\ATM  Emulator\ATM  Emulator\bin\Debug\net6.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+D:\C#\Projects\ATM  Emulator\ATM  Emulator\bin\Debug\net6.0\Microsoft.Extensions.Identity.Core.dll
+D:\C#\Projects\ATM  Emulator\ATM  Emulator\bin\Debug\net6.0\Microsoft.Extensions.Identity.Stores.dll

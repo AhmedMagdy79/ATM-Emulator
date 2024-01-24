@@ -2,7 +2,7 @@
 {
     public class DepositeResponseDto
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; }
 
         public decimal CurrentBalance { get; set; }
     }

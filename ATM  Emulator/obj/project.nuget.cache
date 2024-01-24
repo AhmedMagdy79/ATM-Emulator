@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "SCYPGTqdExaHxtBvVq3Bt59catse5cNJXVCMMRaXq+ra1X2aCf7Tnm6/k6rIJ2IaFh/bBvXNtKKmgnTO7Ne4Vg==",
+  "dgSpecHash": "7l8pnuGTT/luOs3ofn2CvixkGqKrJw7uoRkEtoLtTVLMBQt2/8PSDVn6j/C5m64Z25466gv70e8h1rrCJifP2Q==",
   "success": true,
   "projectFilePath": "D:\\C#\\Projects\\ATM  Emulator\\ATM  Emulator\\ATM  Emulator.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,7 @@
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\6.0.1\\microsoft.aspnetcore.authentication.jwtbearer.6.0.1.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.1\\microsoft.aspnetcore.cryptography.internal.8.0.1.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\8.0.1\\microsoft.aspnetcore.cryptography.keyderivation.8.0.1.nupkg.sha512",
+    "C:\\Users\\Mego\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\6.0.1\\microsoft.aspnetcore.identity.entityframeworkcore.6.0.1.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.data.sqlclient\\2.1.4\\microsoft.data.sqlclient.2.1.4.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.data.sqlclient.sni.runtime\\2.1.1\\microsoft.data.sqlclient.sni.runtime.2.1.1.nupkg.sha512",
@@ -24,6 +25,8 @@
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\6.0.0\\microsoft.extensions.configuration.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\6.0.0\\microsoft.extensions.dependencyinjection.6.0.0.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\6.0.0\\microsoft.extensions.dependencyinjection.abstractions.6.0.0.nupkg.sha512",
+    "C:\\Users\\Mego\\.nuget\\packages\\microsoft.extensions.identity.core\\6.0.1\\microsoft.extensions.identity.core.6.0.1.nupkg.sha512",
+    "C:\\Users\\Mego\\.nuget\\packages\\microsoft.extensions.identity.stores\\6.0.1\\microsoft.extensions.identity.stores.6.0.1.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.extensions.logging\\6.0.0\\microsoft.extensions.logging.6.0.0.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\6.0.0\\microsoft.extensions.logging.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\Mego\\.nuget\\packages\\microsoft.extensions.options\\6.0.0\\microsoft.extensions.options.6.0.0.nupkg.sha512",
